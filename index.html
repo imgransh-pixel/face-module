@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VeriCamp</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.g{background:rgba(255,255,255,.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:20px}
+.inp{width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px;color:#fff;outline:0}
+.inp:focus{border-color:#6366f1;box-shadow:0 0 14px #6366f166}
+.btn{position:relative;overflow:hidden;width:100%;padding:12px;border-radius:14px;font-weight:700;color:#fff;background:linear-gradient(90deg,#6366f1,#06b6d4,#10b981);box-shadow:0 0 18px #6366f155;transition:transform .15s}
+.btn:active{transform:scale(.97)}.btn:disabled{opacity:.5}
+.btn .rp{position:absolute;border-radius:50%;background:#fff6;transform:scale(0);animation:rp .6s linear;pointer-events:none}@keyframes rp{to{transform:scale(4);opacity:0}}
+.scan{position:absolute;left:0;right:0;height:3px;background:#22d3ee;box-shadow:0 0 18px 5px #22d3ee;animation:sc 2.4s ease-in-out infinite alternate}@keyframes sc{from{top:3%}to{top:97%}}
+.br{position:absolute;width:30px;height:30px;border:3px solid #34d399;animation:bp 1.4s infinite}@keyframes bp{50%{opacity:.3}}
+.tl{top:12px;left:12px;border-right:0;border-bottom:0;border-radius:10px 0 0 0}.tr{top:12px;right:12px;border-left:0;border-bottom:0;border-radius:0 10px 0 0}.bl{bottom:12px;left:12px;border-right:0;border-top:0;border-radius:0 0 0 10px}.brr{bottom:12px;right:12px;border-left:0;border-top:0;border-radius:0 0 10px 0}
+.badge{font-size:11px;padding:3px 9px;border-radius:99px;border:1px solid;display:inline-flex;gap:5px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:bp 1.2s infinite}
+.ok{color:#34d399;border-color:#34d39988;background:#34d39911}.bad{color:#f87171;border-color:#f8717188;background:#f8717111}.wn{color:#fbbf24;border-color:#fbbf2488;background:#fbbf2411}
+.pane{display:none}.pane.on{display:block;animation:fs .35s ease}@keyframes fs{from{opacity:0;transform:translateX(18px)}}
+.md{position:fixed;inset:0;background:#000b;z-index:60;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}.md.on{opacity:1;pointer-events:auto}
+.md>div{width:100%;max-width:28rem;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.9,.3,1)}.md.on>div{transform:none}
+@keyframes rd{50%{box-shadow:0 0 50px #ef4444}}.red{animation:rd 1s infinite}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:90}#flash.f{animation:fl .4s}@keyframes fl{0%{opacity:.9}100%{opacity:0}}
+.tab.on{color:#22d3ee;filter:drop-shadow(0 0 6px #22d3ee)}
+</style> <link rel="manifest" href="manifest.json"></head> 
+<body class="bg-slate-950 text-white" style="background-image:radial-gradient(circle at 15% 0,#312e8180,transparent 45%),radial-gradient(circle at 90% 70%,#06b6d440,transparent 45%)">
+<div id="flash"></div>
+<div class="max-w-md mx-auto min-h-screen relative border-x border-white/10 pb-28">
+ <div class="flex justify-between items-center px-5 pt-2 text-[11px] text-slate-400"><span id="clk"></span><div class="w-28 h-5 bg-black rounded-b-2xl"></div><span>5G ▮▮▮</span></div>
+ <header class="px-4 pt-3"><h1 class="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">VeriCamp</h1><p class="text-xs text-slate-400">Zero-Touch Neural Campus Verification</p></header>
+ <main class="px-4 mt-3">
+
+ <section id="p0" class="pane on space-y-3">
+  <div class="g p-3 space-y-2 text-xs"><div class="flex justify-between"><span id="gps" class="flex gap-1 items-center"><i data-lucide="map-pin" class="w-4 h-4 text-cyan-400"></i>Locating…</span><span id="dist" class="badge wn"><span class="dot"></span>-- m</span></div>
+   <div class="flex justify-between items-center"><span id="wifi" class="badge ok"><i data-lucide="wifi" class="w-3 h-3"></i><span></span></span><span id="nxt" class="badge wn">Next hourly check-in: -- mins</span></div></div>
+  <input id="emp" class="inp" placeholder="Staff ID (e.g. SKIT001)" autocomplete="off">
+  <div id="cmv" class="g relative overflow-hidden aspect-[3/4]"><video id="cam" autoplay playsinline muted class="w-full h-full object-cover" style="transform:scaleX(-1)"></video>
+   <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br brr"></i><div class="scan"></div><div id="cmsg" class="absolute bottom-3 inset-x-0 text-center text-xs text-cyan-200"></div></div>
+  <canvas id="cv" class="hidden"></canvas>
+  <button id="mk" class="btn" onclick="mark()">Verify &amp; Mark Attendance</button>
+  <div id="res"></div>
+ </section>
+
+ <section id="p1" class="pane space-y-3"><div class="flex justify-between items-center"><h2 class="font-bold text-lg">Attendance history</h2><button class="badge ok" onclick="hist()">Refresh</button></div>
+  <div class="g p-3 text-xs text-cyan-200 flex gap-2"><i data-lucide="info" class="w-4 h-4 shrink-0"></i>Dates with approved leave are hidden automatically from these logs.</div>
+  <div id="hist" class="space-y-2 border-l border-indigo-500/40 pl-3 ml-1"></div></section>
+
+ <section id="p2" class="pane space-y-3"><h2 class="font-bold text-lg">Apply for leave</h2>
+  <div id="lvF" class="g p-4 space-y-3"><label class="text-xs text-slate-300 block">Start date<input id="ls" type="date" class="inp mt-1"></label><label class="text-xs text-slate-300 block">End date<input id="le" type="date" class="inp mt-1"></label><textarea id="lr" rows="3" class="inp" placeholder="Reason for leave"></textarea><button class="btn" onclick="leave()">Submit leave request</button></div>
+  <div id="lvOk" class="hidden g p-6 text-center"><svg viewBox="0 0 52 52" class="w-16 mx-auto"><circle cx="26" cy="26" r="24" fill="none" stroke="#34d399" stroke-width="3"/><path d="M14 27l8 8 16-17" fill="none" stroke="#34d399" stroke-width="4" stroke-dasharray="40" stroke-dashoffset="40"><animate attributeName="stroke-dashoffset" to="0" dur=".6s" fill="freeze"/></path></svg><h3 class="font-bold mt-2">Leave request sent</h3><p id="lvM" class="text-xs text-slate-300 mt-1"></p><button class="text-xs text-cyan-300 mt-3" onclick="lvF.classList.remove('hidden');lvOk.classList.add('hidden')">New request</button></div></section>
+
+ <section id="p3" class="pane space-y-3"><h2 class="font-bold text-lg">Emergency face update</h2>
+  <div class="g p-4 space-y-3"><p class="text-xs text-slate-300">Facial injury, accident or bandage? Capture a new photo live. <b class="text-amber-300">The new face activates only after Admin approval.</b></p>
+   <textarea id="ar" rows="2" class="inp" placeholder="Accident or medical reason"></textarea>
+   <div class="relative rounded-2xl overflow-hidden"><video id="cam2" autoplay playsinline muted class="w-full" style="transform:scaleX(-1)"></video><img id="pv" class="hidden w-full"><i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br brr"></i></div>
+   <div class="flex gap-2"><button class="btn" onclick="snap()">Capture new photo</button><button class="btn" style="background:#334155" onclick="retake()">Retake</button></div>
+   <button class="btn" onclick="acc()">Request face update</button></div></section>
+ </main>
+
+ <nav class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-[26rem] g flex justify-around py-3 z-40" style="background:rgba(2,6,23,.8)">
+  <button class="tab on" onclick="tab(0)"><i data-lucide="scan-face"></i></button><button class="tab" onclick="tab(1)"><i data-lucide="history"></i></button><button class="tab" onclick="tab(2)"><i data-lucide="calendar-off"></i></button><button class="tab" onclick="tab(3)"><i data-lucide="bandage"></i></button></nav>
+
+ <div class="fixed bottom-24 right-2 z-50 text-xs"><div id="dp" class="hidden g p-3 mb-2 space-y-2 w-56" style="background:rgba(2,6,23,.92)">
+  <button class="badge ok w-full justify-center" onclick="setGps(1)">GPS: Inside Campus</button><button class="badge bad w-full justify-center" onclick="setGps(0)">GPS: Outside Campus</button>
+  <button class="badge ok w-full justify-center" onclick="setWifi('SKIT_CAMPUS_WIFI')">Wi-Fi: SKIT_CAMPUS_WIFI</button><button class="badge bad w-full justify-center" onclick="setWifi('PUBLIC_4G')">Wi-Fi: PUBLIC_4G</button>
+  <button class="badge wn w-full justify-center" onclick="showZ({popup_title:'⚡ VeriCamp Zero-Touch Detected',popup_message:'You have entered the campus radius. Tap to verify instantly.'})">Simulate Zero-Touch Entry</button>
+  <button class="badge wn w-full justify-center" onclick="showH()">Simulate 1-Hour Pop-up</button></div>
+  <button onclick="dp.classList.toggle('hidden')" class="badge wn ml-auto flex" style="background:#000b">🧪 Demo Controls</button></div>
+
+ <div id="lock" class="fixed inset-0 z-[80] hidden items-center justify-center p-6 text-center" style="background:#1c0508f2"><div class="max-w-sm"><i data-lucide="lock" class="w-20 h-20 mx-auto text-red-500 red rounded-full p-3"></i><h2 class="text-2xl font-extrabold text-red-400 mt-4">ACCOUNT BLOCKED FOR 24 HOURS</h2><p id="lockR" class="text-red-100 mt-3"></p><p class="text-xs text-red-200/80 mt-4">The live proxy evidence photo has been transmitted to the VeriCamp Admin Command Center.</p></div></div>
+ <div id="mZ" class="md"><div class="g p-6 text-center" style="background:#0b1226"><div class="text-4xl">⚡</div><h3 id="zT" class="text-lg font-bold mt-2"></h3><p id="zM" class="text-sm text-slate-300 my-3"></p><button class="btn" onclick="hideM('mZ');tab(0);setTimeout(mark,700)">Verify now with live face</button><button class="text-xs text-slate-400 mt-3" onclick="hideM('mZ')">Later</button></div></div>
+ <div id="mH" class="md"><div class="g p-6 text-center red border-red-500/50" style="background:#1a0a10"><div class="text-4xl">⏰</div><h3 class="text-lg font-bold text-red-300 mt-2">Hourly Presence Check</h3><p class="text-sm text-slate-300 my-3">Re-verify your live face immediately to stay marked present.</p><button class="btn" onclick="hideM('mH');tab(0);setTimeout(mark,700)">Re-verify now</button></div></div>
+ <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-[95] g px-4 py-2 text-sm hidden"></div>
+</div>
+<script>
+const API_BASE = "http://127.0.0.1:8000";
+const CAMPUS={lat:26.8239,lng:75.8648},OUT={lat:26.9,lng:75.9},RADIUS=500;
+const $=id=>document.getElementById(id);
+let pos={...CAMPUS},wifi='SKIT_CAMPUS_WIFI',photo=null,stream=null,lastZ=null,gpsReal=false;
+$('emp').value=localStorage.getItem('vc_emp')||'';$('emp').oninput=e=>localStorage.setItem('vc_emp',e.target.value.trim());
+const emp=()=>$('emp').value.trim(),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+document.addEventListener('click',e=>{const b=e.target.closest('.btn');if(!b)return;const r=document.createElement('span'),s=Math.max(b.clientWidth,b.clientHeight);r.className='rp';r.style.cssText=`width:${s}px;height:${s}px;left:${e.offsetX-s/2}px;top:${e.offsetY-s/2}px`;b.appendChild(r);setTimeout(()=>r.remove(),600)});
+setInterval(()=>$('clk').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),1000);
+function toast(m,bad){const t=$('toast');t.textContent=m;t.style.borderColor=bad?'#f87171':'#34d399';t.classList.remove('hidden');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.add('hidden'),3800)}
+const hideM=id=>$(id).classList.remove('on');
+function tab(i){document.querySelectorAll('.pane').forEach((p,k)=>p.classList.toggle('on',k===i));document.querySelectorAll('.tab').forEach((t,k)=>t.classList.toggle('on',k===i));if(i===1)hist()}
+async function cam(){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});$('cam').srcObject=stream;$('cam2').srcObject=stream;$('cmsg').textContent='Neural scanner active'}catch(e){$('cmsg').textContent='Camera blocked — allow access to continue'}}
+function grab(v){return new Promise(r=>{const c=$('cv');c.width=v.videoWidth||480;c.height=v.videoHeight||640;c.getContext('2d').drawImage(v,0,0,c.width,c.height);c.toBlob(r,'image/jpeg',.9)})}
+function hav(a,b,c,d){const R=6371e3,r=x=>x*Math.PI/180,h=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return Math.round(2*R*Math.asin(Math.sqrt(h)))}
+function render(){const d=hav(pos.lat,pos.lng,CAMPUS.lat,CAMPUS.lng),ins=d<=RADIUS;$('gps').lastChild.textContent=' '+pos.lat.toFixed(4)+', '+pos.lng.toFixed(4);$('dist').innerHTML=`<span class="dot"></span>${ins?'Inside':'Outside'} · ${d} m`;$('dist').className='badge '+(ins?'ok':'bad');const w=$('wifi');w.className='badge '+(wifi==='SKIT_CAMPUS_WIFI'?'ok':'bad');w.lastChild.textContent=wifi;checkZ()}
+function setGps(i){pos={...(i?CAMPUS:OUT)};gpsReal=false;lastZ=null;render();toast(i?'Demo GPS: inside campus':'Demo GPS: outside campus')}
+function setWifi(s){wifi=s;lastZ=null;render()}
+if(navigator.geolocation)navigator.geolocation.watchPosition(p=>{pos={lat:p.coords.latitude,lng:p.coords.longitude};gpsReal=true;render()},()=>{},{enableHighAccuracy:true});
+function showZ(d){$('zT').textContent=d.popup_title||'⚡ VeriCamp Zero-Touch Detected';$('zM').textContent=d.popup_message||'You are inside the campus radius.';$('mZ').classList.add('on')}
+async function checkZ(){if(!emp())return;const k=pos.lat.toFixed(3)+pos.lng.toFixed(3)+wifi;if(k===lastZ)return;lastZ=k;try{const q=new URLSearchParams({emp_id:emp(),lat:pos.lat,lng:pos.lng,wifi_ssid:wifi});const d=await(await fetch(`${API_BASE}/staff/zero-touch-popup?${q}`)).json();if(d.show_popup===true)showZ(d)}catch(e){}}
+function beep(){try{const a=new AudioContext();[880,1100,880].forEach((f,i)=>{const o=a.createOscillator();o.frequency.value=f;o.connect(a.destination);o.start(a.currentTime+i*.25);o.stop(a.currentTime+i*.25+.18)})}catch(e){}}
+function showH(){$('mH').classList.add('on');beep();if(navigator.vibrate)navigator.vibrate([400,150,400,150,400])}
+function nextBadge(m){$('nxt').textContent=`Next hourly check-in: ${m} mins`}
+async function pollH(){if(!emp())return;try{const d=await(await fetch(`${API_BASE}/staff/hourly-attendance-popup?emp_id=${encodeURIComponent(emp())}`)).json();if(d.popup_required===true){if(!$('mH').classList.contains('on'))showH()}else{const l=+localStorage.getItem('vc_last')||0;nextBadge(d.minutes_remaining??d.next_in_minutes??(l?Math.max(0,60-Math.floor((Date.now()-l)/60000)):60))}}catch(e){}}
+setInterval(pollH,60000);
+function lockUI(r){$('lockR').textContent=r||'Three failed face verifications detected.';$('lock').classList.replace('hidden','flex');lucide.createIcons();if(navigator.vibrate)navigator.vibrate([500,200,500])}
+async function mark(){if(!emp())return toast('Enter your Staff ID',1);if(!stream)return toast('Camera not ready',1);
+ $('flash').classList.remove('f');void $('flash').offsetWidth;$('flash').classList.add('f');
+ const b=await grab($('cam'));if(!b)return toast('Capture failed',1);
+ const f=new FormData();f.append('emp_id',emp());f.append('lat',pos.lat);f.append('lng',pos.lng);f.append('wifi_ssid',wifi);f.append('live_photo',b,'live.jpg');
+ $('mk').disabled=true;$('res').innerHTML='<p class="text-center text-sm text-cyan-300">Analysing biometrics…</p>';
+ try{const d=await(await fetch(API_BASE+'/staff/mark-attendance',{method:'POST',body:f})).json();let h='';
+  if(d.status==='blocked_24h'){$('res').innerHTML='';lockUI(d.reason)}
+  else{
+   if(d.status==='success'){localStorage.setItem('vc_last',Date.now());nextBadge(60);h=`<div class="g p-4 border-emerald-400/50"><b class="text-emerald-400">✔ Attendance marked</b><div class="text-sm mt-1">Confidence: ${esc(d.confidence)} · Distance: ${esc(d.distance_m)} m</div><div class="text-xs text-slate-300">${esc(d.message||'')}</div></div>`}
+   else if(d.status==='rejected'){h=`<div class="g p-4 border-red-400/50"><b class="text-red-400">⚠ Face mismatch — strike warning</b><div class="text-sm mt-1">${esc(d.reason||d.message||'Verification failed.')}</div><div class="text-xs text-red-200 mt-1">${d.strikes!=null?'Strikes: '+esc(d.strikes)+'/3. ':''}Three strikes block your account for 24 hours.</div></div>`;if(navigator.vibrate)navigator.vibrate(300)}
+   else if(d.status==='on_leave'){h=`<div class="g p-4 border-amber-400/50"><b class="text-amber-300">🏖 On Approved Leave</b><div class="text-sm mt-1">${esc(d.message||d.reason||'No attendance needed today.')}</div></div>`}
+   else h=`<div class="g p-4 text-sm">${esc(d.status||'')} ${esc(d.message||d.reason||d.detail||'')}</div>`;
+   $('res').innerHTML=h}
+ }catch(e){$('res').innerHTML='<p class="text-center text-sm text-red-400">Backend unreachable at '+API_BASE+'</p>'}
+ $('mk').disabled=false}
+async function hist(){if(!emp())return $('hist').innerHTML='<p class="text-sm text-slate-400">Enter your Staff ID on the scanner tab first.</p>';
+ try{const d=await(await fetch(`${API_BASE}/staff/attendance-records?emp_id=${encodeURIComponent(emp())}`)).json();const L=d.visible_attendance_logs||[];
+  $('hist').innerHTML=L.length?L.map(x=>`<div class="g p-3 text-sm relative"><i class="absolute -left-[19px] top-4 w-2.5 h-2.5 rounded-full bg-cyan-400"></i><div class="flex justify-between"><b>${esc(x.date)}</b><span class="badge ${/success|present/i.test(x.status)?'ok':'wn'}">${esc(x.status)}</span></div><div class="text-xs text-slate-400">${esc(x.timestamp)}</div><div class="text-xs mt-1">${esc(x.distance_m)} m · confidence ${esc(x.confidence)}</div></div>`).join(''):'<p class="text-sm text-slate-400">No visible records yet.</p>'
+ }catch(e){$('hist').innerHTML='<p class="text-sm text-red-400">Backend unreachable.</p>'}}
+async function post(p,f){try{const d=await(await fetch(API_BASE+p,{method:'POST',body:f})).json();if(d.detail)toast(typeof d.detail==='string'?d.detail:'Request failed',1);return d}catch(e){toast('Backend unreachable',1)}}
+async function leave(){if(!emp()||!ls.value||!le.value||!lr.value.trim())return toast('Fill every field',1);if(le.value<ls.value)return toast('End date is before start date',1);
+ const f=new FormData();f.append('emp_id',emp());f.append('start_date',ls.value);f.append('end_date',le.value);f.append('reason',lr.value.trim());
+ const d=await post('/staff/apply-leave',f);if(d&&!d.detail){lvM.textContent=d.message||'Waiting for admin approval.';lvF.classList.add('hidden');lvOk.classList.remove('hidden')}}
+async function snap(){photo=await grab($('cam2'));pv.src=URL.createObjectURL(photo);pv.classList.remove('hidden');$('cam2').classList.add('hidden')}
+function retake(){photo=null;pv.classList.add('hidden');$('cam2').classList.remove('hidden')}
+async function acc(){if(!emp()||!ar.value.trim()||!photo)return toast('Add your ID, a reason and a live photo',1);
+ const f=new FormData();f.append('emp_id',emp());f.append('accident_or_medical_reason',ar.value.trim());f.append('new_photo',photo,'new.jpg');
+ const d=await post('/staff/request-accident-face-update',f);if(d&&!d.detail)toast(d.message||'Sent. Your new face activates after Admin approval.')}
+lucide.createIcons();render();cam();pollH();
+</script></body></html>

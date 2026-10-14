@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeriCamp Admin Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-slate-900/85 border-r border-slate-800 p-6 flex flex-col justify-between">
+        <div>
+            <div class="flex items-center gap-3 mb-8">
+                <div class="p-2 bg-indigo-600 rounded-xl">
+                    <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wider">VeriCamp</h1>
+                    <p class="text-xs text-slate-400">Admin Command Center</p>
+                </div>
+            </div>
+            
+            <nav class="space-y-2">
+                <button onclick="switchTab('enrollment')" id="btn-enrollment" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition bg-indigo-600 text-white">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i> Enrollment & Faculty
+                </button>
+                <button onclick="switchTab('proxy')" id="btn-proxy" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i data-lucide="alert-triangle" class="w-4 h-4"></i> Proxy Alerts
+                </button>
+                <button onclick="switchTab('leaves')" id="btn-leaves" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i data-lucide="calendar-check" class="w-4 h-4"></i> Leave Approvals
+                </button>
+                <button onclick="switchTab('faces')" id="btn-faces" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> Face Updates
+                </button>
+            </nav>
+        </div>
+        <div class="text-xs text-emerald-400 bg-emerald-950/40 p-3 rounded-xl border border-emerald-800/40 text-center">
+            Backend Connected
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-10 overflow-y-auto">
+
+        <!-- 1. ENROLLMENT & FACULTY LIST TAB -->
+        <div id="tab-enrollment" class="tab-content space-y-8">
+            <h2 class="text-2xl font-bold tracking-tight">Staff Biometric Enrollment & Directory</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Registration Form -->
+                <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                    <h3 class="text-lg font-semibold mb-4 text-indigo-400">Register New Staff</h3>
+                    <form id="enroll-form" onsubmit="handleEnroll(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Employee ID</label>
+                            <input type="text" id="reg-id" required placeholder="e.g. SKIT001" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Full Name</label>
+                            <input type="text" id="reg-name" required placeholder="Dr. John Doe" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Department</label>
+                            <input type="text" id="reg-dept" required placeholder="CSE" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                        </div>
+                        
+                        <!-- Photo Input Options -->
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Reference Photo (Live Webcam or File)</label>
+                            <div class="flex gap-2 mb-3">
+                                <button type="button" onclick="startWebcam()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium">Open Webcam</button>
+                                <button type="button" onclick="captureWebcamSnapshot()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-xs font-medium">Snap Photo</button>
+                            </div>
+                            <!-- Webcam Feed -->
+                            <div id="webcam-container" class="hidden mb-3 relative rounded-xl overflow-hidden border border-slate-700 w-full h-48 bg-black">
+                                <video id="webcam-video" autoplay playsinline class="w-full h-full object-cover"></video>
+                            </div>
+                            <canvas id="snapshot-canvas" class="hidden"></canvas>
+                            <input type="file" id="reg-photo" accept="image/*" class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                        </div>
+
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl transition">Enroll Staff</button>
+                    </form>
+                </div>
+
+                <!-- Registered Faculty List Table -->
+                <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-indigo-400">Registered Faculty Directory</h3>
+                        <button onclick="loadFacultyList()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium">Refresh List</button>
+                    </div>
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
+                                    <th class="py-3 px-2">Emp ID</th>
+                                    <th class="py-3 px-2">Name</th>
+                                    <th class="py-3 px-2">Dept</th>
+                                </tr>
+                            </thead>
+                            <tbody id="faculty-table-body" class="text-sm divide-y divide-slate-800/50">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. PROXY ALERTS TAB -->
+        <div id="tab-proxy" class="tab-content space-y-6 hidden">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold tracking-tight">🚨 3-Strike Proxy Security Alerts</h2>
+                <button onclick="loadProxyAlerts()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-medium">Refresh Alerts</button>
+            </div>
+            <div id="proxy-alerts-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- 3. LEAVE APPROVALS TAB -->
+        <div id="tab-leaves" class="tab-content space-y-6 hidden">
+            <h2 class="text-2xl font-bold tracking-tight">Leave Approval Manager</h2>
+            <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl max-w-xl space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Leave ID</label>
+                    <input type="number" id="leave-id" placeholder="Enter Leave Request ID" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="handleLeave(true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 rounded-xl transition">Approve Leave</button>
+                    <button onclick="handleLeave(false)" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-medium py-2.5 rounded-xl transition">Reject Leave</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. FACE UPDATES TAB -->
+        <div id="tab-faces" class="tab-content space-y-6 hidden">
+            <h2 class="text-2xl font-bold tracking-tight">Accident / Medical Face Update Approval</h2>
+            <div class="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl max-w-xl space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Employee ID</label>
+                    <input type="text" id="face-emp-id" placeholder="e.g. SKIT001" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="handleFaceUpdate(true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 rounded-xl transition">Approve & Unlock</button>
+                    <button onclick="handleFaceUpdate(false)" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-medium py-2.5 rounded-xl transition">Reject</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:8000";
+        let capturedBlob = null;
+        let webcamStream = null;
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-indigo-600', 'text-white');
+                el.classList.add('text-slate-400', 'hover:bg-slate-800', 'hover:text-white');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabName}`);
+            activeBtn.classList.add('bg-indigo-600', 'text-white');
+            activeBtn.classList.remove('text-slate-400', 'hover:bg-slate-800', 'hover:text-white');
+
+            if(tabName === 'enrollment') loadFacultyList();
+            if(tabName === 'proxy') loadProxyAlerts();
+        }
+
+        async function startWebcam() {
+            const video = document.getElementById("webcam-video");
+            document.getElementById("webcam-container").classList.remove("hidden");
+            try {
+                webcamStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                video.srcObject = webcamStream;
+            } catch(err) {
+                alert("Webcam access denied or unavailable.");
+            }
+        }
+
+        function captureWebcamSnapshot() {
+            const video = document.getElementById("webcam-video");
+            const canvas = document.getElementById("snapshot-canvas");
+            if(!webcamStream) {
+                alert("Please start webcam first!");
+                return;
+            }
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(blob => {
+                capturedBlob = blob;
+                alert("Live webcam photo captured successfully for enrollment!");
+            }, 'image/jpeg', 0.95);
+        }
+
+        async function loadFacultyList() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/staff-list`);
+                const data = await res.json();
+                const tbody = document.getElementById("faculty-table-body");
+                tbody.innerHTML = "";
+                if(data.faculty.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-500">No faculty registered yet.</td></tr>`;
+                    return;
+                }
+                data.faculty.forEach(f => {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-800/30">
+                            <td class="py-3 px-2 font-mono text-indigo-400">${f.emp_id}</td>
+                            <td class="py-3 px-2 font-medium">${f.name}</td>
+                            <td class="py-3 px-2 text-slate-400">${f.department}</td>
+                        </tr>
+                    `;
+                });
+            } catch(err) {
+                console.error("Error loading faculty:", err);
+            }
+        }
+
+        async function handleEnroll(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append("emp_id", document.getElementById("reg-id").value);
+            formData.append("name", document.getElementById("reg-name").value);
+            formData.append("department", document.getElementById("reg-dept").value);
+
+            const fileInput = document.getElementById("reg-photo");
+            if(capturedBlob) {
+                formData.append("photo", capturedBlob, "webcam_enroll.jpg");
+            } else if(fileInput.files[0]) {
+                formData.append("photo", fileInput.files[0]);
+            } else {
+                alert("Please provide a photo either via file upload or live webcam snapshot!");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/register`, { method: "POST", body: formData });
+                const data = await res.json();
+                alert(data.message);
+                document.getElementById("enroll-form").reset();
+                capturedBlob = null;
+                document.getElementById("webcam-container").classList.add("hidden");
+                if(webcamStream) {
+                    webcamStream.getTracks().forEach(track => track.stop());
+                }
+                loadFacultyList();
+            } catch(err) {
+                alert("Error connecting to backend!");
+            }
+        }
+
+        async function loadProxyAlerts() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/proxy-alerts`);
+                const data = await res.json();
+                const container = document.getElementById("proxy-alerts-container");
+                container.innerHTML = "";
+
+                if(data.alerts.length === 0) {
+                    container.innerHTML = `<p class="text-sm text-slate-500 col-span-2">No proxy alerts recorded.</p>`;
+                    return;
+                }
+
+                data.alerts.forEach(alertItem => {
+                    container.innerHTML += `
+                        <div class="bg-slate-900 border border-rose-900/50 p-4 rounded-xl flex gap-4 items-center">
+                            <img src="${API_BASE}/${alertItem.photo}" class="w-16 h-16 object-cover rounded-lg border border-rose-500/30" onerror="this.src='https://via.placeholder.com/80'">
+                            <div>
+                                <span class="text-xs px-2 py-0.5 bg-rose-950 text-rose-400 rounded-full font-semibold">Emp: ${alertItem.emp_id}</span>
+                                <p class="text-sm mt-1 text-slate-300">${alertItem.message}</p>
+                                <span class="text-xs text-slate-500 mt-1 block">${alertItem.time}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch(err) {
+                console.error(err);
+            }
+        }
+
+        async function handleLeave(approve) {
+            const leaveId = document.getElementById("leave-id").value;
+            if(!leaveId) return alert("Enter Leave ID!");
+            const formData = new FormData();
+            formData.append("leave_id", leaveId);
+            formData.append("approve", approve);
+            const res = await fetch(`${API_BASE}/admin/approve-leave`, { method: "POST", body: formData });
+            const data = await res.json();
+            alert(data.message);
+        }
+
+        async function handleFaceUpdate(approve) {
+            const empId = document.getElementById("face-emp-id").value;
+            if(!empId) return alert("Enter Employee ID!");
+            const formData = new FormData();
+            formData.append("emp_id", empId);
+            formData.append("approve", approve);
+            const res = await fetch(`${API_BASE}/admin/approve-accident-face-update`, { method: "POST", body: formData });
+            const data = await res.json();
+            alert(data.message);
+        }
+
+        // Load list on initial page open
+        loadFacultyList();
+        lucide.createIcons();
+    </script>
+</body>
+</html>
