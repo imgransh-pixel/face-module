@@ -1,11 +1,12 @@
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
+from face_service import verify_staff_face
 import os
 import math
 import shutil
 import sqlite3
-from face_service import verify_staff_face
+from fastapi.responses import FileResponse
 
 app = FastAPI(title="SKIT023 Smart Attendance API - Final Edition")
 
@@ -15,6 +16,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+@app.get("/")
+def read_index():
+    return FileResponse("index.html")
+
 
 DB_FOLDER = "staff_db"
 PENDING_FACES = "pending_faces"
