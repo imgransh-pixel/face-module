@@ -20,7 +20,7 @@ app.add_middleware(
 def read_index():
     return FileResponse("index.html")
 
-@app.get("/admin")
+@app.get("/vericamp_admin")
 def read_admin():
     return FileResponse("vericamp_admin.html")
 
